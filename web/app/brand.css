@@ -1,0 +1,67 @@
+.brand {
+  gap: 9px;
+}
+
+.shell {
+  max-width: 1500px;
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+.brandMark {
+  width: 48px;
+  height: 36px;
+  overflow: hidden;
+  background: transparent;
+  color: inherit;
+  border-radius: 0;
+  transform: none;
+}
+
+.brandMark img {
+  display: block;
+  width: 48px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.hero {
+  max-width: none;
+  padding: 34px 0 24px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(30px, 3.3vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding: 28px 0 20px;
+  }
+
+  .hero h1 {
+    font-size: clamp(30px, 6vw, 42px);
+    white-space: normal;
+  }
+}
+
+@media (max-width: 520px) {
+  .shell {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}

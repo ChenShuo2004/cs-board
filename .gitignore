@@ -1,0 +1,33 @@
+# Local secrets and generated jobs
+.webapp/
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Web dependencies and build output
+web/node_modules/
+web/.next/
+web/.vinext/
+web/dist/
+web/.wrangler/
+web/coverage/
+web/outputs/
+web/work/
+
+# Runtime media and local projects
+assets/whiteboard/
+*.wav
+*.mp3
+*.m4a
+*.mp4
+
+# Logs and operating-system files
+*.log
+Thumbs.db
+.DS_Store
