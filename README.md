@@ -33,6 +33,25 @@ CS Board 是面向中文创作者的本地 AI 白板视频生成工具。上传�
 - 过程可见：显示每个制作阶段、进度和耗时，成片可直接预览和下载
 - 本地优先：API Key、参考音频、图片与成片只写入项目目录下的 `.webapp/`
 
+## 画面风格
+
+每次生成可选择一种视觉配方。它会影响插画的配色、线条、构图和整体气质；选择时优先匹配你的内容场景，而不是只看画面是否好看。
+
+| 风格 | 预览 | 画面特征 | 推荐内容 |
+| --- | --- | --- | --- |
+| **极简粗线简笔白板风** | <img src="web/public/styles/minimal-whiteboard.webp" alt="极简粗线简笔白板风预览" width="160" /> | 粗黑线、少量橙蓝配色、留白干净 | 知识讲解、个人表达、复盘总结 |
+| **极简商务涂鸦风** | <img src="web/public/styles/business-doodle.webp" alt="极简商务涂鸦风预览" width="160" /> | 几何图表、蓝绿配色、专业克制 | 产品介绍、商业分析、项目汇报 |
+| **暖米黄素描白板风** | <img src="web/public/styles/warm-pencil.webp" alt="暖米黄素描白板风预览" width="160" /> | 铅笔排线、纸张质感、温暖细腻 | 人物故事、个人成长、品牌叙事 |
+| **粗线扁平国风卡通** | <img src="web/public/styles/guofeng-flat.webp" alt="粗线扁平国风卡通预览" width="160" /> | 朱红玉绿、国风纹样、生动平涂 | 传统文化、国风品牌、中文创意内容 |
+| **爆款高热吸睛风** | <img src="web/public/styles/viral-pop.webp" alt="爆款高热吸睛风预览" width="160" /> | 高饱和、强对比、夸张动势 | 短视频开场、强观点、热点表达 |
+| **黑金科技发布会风** | <img src="web/public/styles/black-gold-tech.webp" alt="黑金科技发布会风预览" width="160" /> | 黑金光效、科技舞台、高级权威 | AI 与科技产品、发布会、硬核创业内容 |
+| **清新治愈手账风** | <img src="web/public/styles/healing-journal.webp" alt="清新治愈手账风预览" width="160" /> | 柔和水彩、低饱和配色、生活手账感 | 情感、生活方式、自我成长内容 |
+| **复古报纸拼贴风** | <img src="web/public/styles/retro-collage.webp" alt="复古报纸拼贴风预览" width="160" /> | 撕纸拼贴、半色调、编辑杂志感 | 深度观点、文化内容、案例复盘 |
+| **3D黏土趣味风** | <img src="web/public/styles/clay-3d.webp" alt="3D黏土趣味风预览" width="160" /> | 黏土材质、玩具比例、温暖可爱 | 亲子教育、轻量品牌、趣味科普 |
+| **赛博霓虹漫画风** | <img src="web/public/styles/cyber-neon.webp" alt="赛博霓虹漫画风预览" width="160" /> | 霓虹青紫、漫画速度线、未来感 | AI 趋势、数码科技、年轻化观点 |
+
+> 预览图展示的是各风格的视觉方向。实际成片会根据你的文案和分镜生成，人物、物体与场景会随内容变化。
+
 ## 开始之前
 
 CS Board 是本地应用，不是 GitHub Pages 网站。运行和生成视频需要以下环境：
