@@ -25,6 +25,179 @@
   object-fit: contain;
 }
 
+.pageSwitch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f3ecdf;
+}
+
+.pageSwitch button {
+  padding: 8px 15px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pageSwitch button.active {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 4px 12px #27272222;
+}
+
+.referenceBuilder {
+  margin-top: 4px;
+}
+
+.visualDrop,
+.characterUpload {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  padding: 17px;
+  overflow: hidden;
+  border: 1px dashed #cbbca7;
+  border-radius: 11px;
+  background: #fffdf7;
+  cursor: pointer;
+}
+
+.visualDrop.ready,
+.characterUpload.ready {
+  border-color: #769a75;
+  background: #f5fbf1;
+}
+
+.visualDrop input,
+.characterUpload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.visualDrop span {
+  color: var(--red);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.visualDrop strong,
+.characterUpload strong {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visualDrop small,
+.characterUpload small,
+.characterHeading span,
+.referenceTip {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+}
+
+.characterHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 9px;
+}
+
+.characterHeading div {
+  display: grid;
+  gap: 2px;
+}
+
+.characterHeading strong {
+  font-size: 13px;
+}
+
+.characterHeading button {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf7;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.characterList {
+  display: grid;
+  gap: 9px;
+}
+
+.characterCard {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #f8f2e7;
+}
+
+.characterTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+
+.characterTop b {
+  font-size: 11px;
+}
+
+.characterTop button {
+  color: var(--red);
+  font-size: 9px;
+}
+
+.characterTop button:disabled,
+.characterHeading button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.characterFields {
+  display: grid;
+  grid-template-columns: minmax(120px, .7fr) minmax(180px, 1.3fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.characterFields label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.characterFields input {
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf7;
+  color: var(--ink);
+  font-size: 10px;
+}
+
+.characterUpload {
+  padding: 11px 12px;
+}
+
+.referenceTip {
+  margin: 9px 2px 0;
+}
+
 .hero {
   max-width: none;
   padding: 34px 0 24px;
@@ -48,7 +221,195 @@
   line-height: 1.6;
 }
 
+.renderSetting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 22px;
+  padding: 14px 18px;
+}
+
+.renderSetting div {
+  display: grid;
+  gap: 3px;
+}
+
+.renderSetting strong {
+  font-size: 13px;
+}
+
+.renderSetting span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.renderSetting select {
+  width: min(280px, 42vw);
+  padding: 9px 12px;
+  font-size: 12px;
+}
+
+.controlPanel .renderSetting.compact {
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fffdf7;
+}
+
+.controlPanel .renderSetting.compact select {
+  width: 48%;
+  min-width: 190px;
+  padding: 8px 9px;
+  font-size: 10px;
+}
+
+.taskNameField {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.taskNameField small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyPanel {
+  margin-top: 22px;
+  padding: 22px 24px;
+}
+
+.historyList {
+  display: grid;
+  gap: 8px;
+}
+
+.historyList article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fffdf7;
+}
+
+.historyList article > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.historyList strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyList strong em {
+  flex: none;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #eee5d6;
+  color: var(--red);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.historyList span,
+.historyEmpty {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.historyList article > div:last-child {
+  display: flex;
+  gap: 7px;
+  flex: none;
+}
+
+.historyList a,
+.historyList button {
+  padding: 7px 10px;
+  border-radius: 7px;
+  background: #eee5d6;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.historyList button {
+  background: var(--ink);
+  color: white;
+}
+
+.sharedTask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 0 auto 14px;
+  padding: 7px 11px;
+  border: 1px solid #d8cfbd;
+  border-radius: 999px;
+  background: #fff8e9;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.sharedTask strong {
+  color: var(--ink);
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-size: 11px;
+}
+
+.retryButton {
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px 14px;
+  border-radius: 9px;
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.historyList button.retryHistory {
+  background: var(--red);
+  color: #fff;
+}
+
 @media (max-width: 900px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .pageSwitch {
+    order: 3;
+    width: 100%;
+  }
+
+  .pageSwitch button {
+    flex: 1;
+  }
+
   .hero {
     padding: 28px 0 20px;
   }
@@ -63,5 +424,24 @@
   .shell {
     padding-left: 14px;
     padding-right: 14px;
+  }
+
+  .renderSetting,
+  .historyList article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .renderSetting select {
+    width: 100%;
+  }
+
+  .controlPanel .renderSetting.compact select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .characterFields {
+    grid-template-columns: 1fr;
   }
 }

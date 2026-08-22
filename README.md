@@ -1,75 +1,85 @@
-# CS Board
+# 有温度出品｜白板声画工坊
 
-> 把一段文案和你的声音，做成一支会说话的白板视频。
+> 把你的表达，画成一支会说话的白板视频。
 
-CS Board 是面向中文创作者的本地 AI 白板视频生成工具。上传一段参考音频、粘贴文案，选择画面风格后，它会完成音色克隆、分镜规划、插画生成、手绘笔迹、字幕与音画合成，导出 MP4 成片。
+**白板声画工坊**是一个本地运行的 AI 视频制作工作台。上传一段参考音频、粘贴中文文案，选择画面风格或提供人物与风格参考，系统会自动完成音色克隆、分镜、插画、手绘笔迹、字幕和音画合成，并导出 MP4。
 
-> 所有配置、参考音频和生成结果默认保存在你的电脑上，不会上传到本项目的服务器。
+![白板动画成片示例](examples/scene-01-monkey-mountain-banana-whiteboard.gif)
 
-![CS Board 生成效果：猴子、山和香蕉的白板动画](examples/scene-01-monkey-mountain-banana-whiteboard.gif)
+## 为什么做它
 
-## 它适合谁
-
-- 想把口播文案快速做成知识科普、观点表达或课程宣传视频的创作者
-- 有固定声音与个人表达风格，希望批量制作白板动画内容的人
-- 希望把 AI 视频制作流程放在本地掌控，而不是把素材交给陌生平台的团队
-
-## 从文案到成片
+短视频创作里，真正耗时的往往不是写文案，而是把表达稳定地做成画面。本项目把这条链路收进一台电脑：素材、密钥、任务历史和成片默认都留在本地；同一局域网内的团队也能共用一条生产队列。
 
 ```text
-参考音频 + 中文文案
-        ↓
-克隆音色 → 拆分分镜 → 生成插画 → 绘制白板笔迹 → 合成配音与字幕
-        ↓
-      MP4 视频
+参考音频 + 中文文案 +（可选）视觉/人物参考
+                    ↓
+音色克隆 → 文案分镜 → 统一插画 → 流式手绘 → 字幕与音画合成
+                    ↓
+                 MP4 成片
 ```
 
 ## 核心能力
 
-- 克隆参考音色：接入本地运行的 IndexTTS 服务
-- 自动完成分镜：通过 GPT-5 将口播文案拆成适合视频表达的场景
-- 统一视觉：内置 10 种画面风格，包括极简白板、国风、手账、拼贴、3D 黏土和赛博霓虹等
-- 控制成本与节奏：可设置每张图承载的分镜数、是否烧录中文字幕，以及画笔上的账号名
-- 过程可见：显示每个制作阶段、进度和耗时，成片可直接预览和下载
-- 本地优先：API Key、参考音频、图片与成片只写入项目目录下的 `.webapp/`
+| 能力 | 你得到什么 |
+| --- | --- |
+| 本地音色克隆 | 接入自己的 IndexTTS Gradio 或 FastAPI 服务，参考音频不离开本机目录。 |
+| 11 种视觉风格 | 从极简白板、国风、手账到赛博霓虹；新增「纸感隐喻拼贴风」。 |
+| 纸感隐喻拼贴 | 根据文案识别流程、因果、对比等结构，从本地 10 张视觉参考中选择 1–3 张辅助构图，而不是机械堆图标。 |
+| 自定义参考 | 上传 1 张风格图，以及最多 5 个角色、每人 1–3 张参考图，让人物与画风贯穿全片。 |
+| 准确中文重点词 | 每个分镜可本地叠加 4–10 字重点短语，避开图片模型生成中文时常见的乱码；可一键关闭。 |
+| 可控成片节奏 | 支持 1–4 个分镜合并为一张图、字幕开关、笔身账号名及 4 档线条绘制量。 |
+| 任务历史与复用 | 可命名任务、查看耗时和历史；成片可基于现有配音与分镜重新渲染，不重复调用模型与 TTS。 |
+| 断点恢复 | 配音、分镜、图片、分段视频与最终合成都有检查点；重启服务或临时失败后可继续。 |
+| 局域网协作 | 多台电脑共用队列、进度和历史；个人制作偏好保存在各自浏览器，不会互相覆盖。 |
 
 ## 画面风格
 
-每次生成可选择一种视觉配方。它会影响插画的配色、线条、构图和整体气质；选择时优先匹配你的内容场景，而不是只看画面是否好看。
+选择风格会同时影响配色、线条、材质与构图。预览图展示视觉方向，实际人物和场景仍会随文案生成。
 
-| 风格 | 预览 | 画面特征 | 推荐内容 |
-| --- | --- | --- | --- |
-| **极简粗线简笔白板风** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/minimal-whiteboard.webp" alt="极简粗线简笔白板风预览" width="160" /> | 粗黑线、少量橙蓝配色、留白干净 | 知识讲解、个人表达、复盘总结 |
-| **极简商务涂鸦风** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/business-doodle.webp" alt="极简商务涂鸦风预览" width="160" /> | 几何图表、蓝绿配色、专业克制 | 产品介绍、商业分析、项目汇报 |
-| **暖米黄素描白板风** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/warm-pencil.webp" alt="暖米黄素描白板风预览" width="160" /> | 铅笔排线、纸张质感、温暖细腻 | 人物故事、个人成长、品牌叙事 |
-| **粗线扁平国风卡通** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/guofeng-flat.webp" alt="粗线扁平国风卡通预览" width="160" /> | 朱红玉绿、国风纹样、生动平涂 | 传统文化、国风品牌、中文创意内容 |
-| **爆款高热吸睛风** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/viral-pop.webp" alt="爆款高热吸睛风预览" width="160" /> | 高饱和、强对比、夸张动势 | 短视频开场、强观点、热点表达 |
-| **黑金科技发布会风** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/black-gold-tech.webp" alt="黑金科技发布会风预览" width="160" /> | 黑金光效、科技舞台、高级权威 | AI 与科技产品、发布会、硬核创业内容 |
-| **清新治愈手账风** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/healing-journal.webp" alt="清新治愈手账风预览" width="160" /> | 柔和水彩、低饱和配色、生活手账感 | 情感、生活方式、自我成长内容 |
-| **复古报纸拼贴风** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/retro-collage.webp" alt="复古报纸拼贴风预览" width="160" /> | 撕纸拼贴、半色调、编辑杂志感 | 深度观点、文化内容、案例复盘 |
-| **3D黏土趣味风** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/clay-3d.webp" alt="3D黏土趣味风预览" width="160" /> | 黏土材质、玩具比例、温暖可爱 | 亲子教育、轻量品牌、趣味科普 |
-| **赛博霓虹漫画风** | <img src="https://raw.githubusercontent.com/ChenShuo2004/cs-board/main/web/public/styles/cyber-neon.webp" alt="赛博霓虹漫画风预览" width="160" /> | 霓虹青紫、漫画速度线、未来感 | AI 趋势、数码科技、年轻化观点 |
+| 风格 | 预览 | 适合内容 |
+| --- | --- | --- |
+| 极简粗线简笔白板风 | <img src="web/public/styles/minimal-whiteboard.webp" alt="极简粗线简笔白板风" width="120" /> | 知识讲解、个人表达、复盘总结 |
+| 极简商务涂鸦风 | <img src="web/public/styles/business-doodle.webp" alt="极简商务涂鸦风" width="120" /> | 产品介绍、商业分析、项目汇报 |
+| 暖米黄素描白板风 | <img src="web/public/styles/warm-pencil.webp" alt="暖米黄素描白板风" width="120" /> | 人物故事、个人成长、品牌叙事 |
+| 粗线扁平国风卡通 | <img src="web/public/styles/guofeng-flat.webp" alt="粗线扁平国风卡通" width="120" /> | 传统文化、国风品牌、中文创意 |
+| 爆款高热吸睛风 | <img src="web/public/styles/viral-pop.webp" alt="爆款高热吸睛风" width="120" /> | 短视频开场、强观点、热点表达 |
+| 黑金科技发布会风 | <img src="web/public/styles/black-gold-tech.webp" alt="黑金科技发布会风" width="120" /> | AI、科技产品、发布会 |
+| 清新治愈手账风 | <img src="web/public/styles/healing-journal.webp" alt="清新治愈手账风" width="120" /> | 情感、生活方式、自我成长 |
+| 复古报纸拼贴风 | <img src="web/public/styles/retro-collage.webp" alt="复古报纸拼贴风" width="120" /> | 深度观点、文化内容、案例复盘 |
+| **纸感隐喻拼贴风（新增）** | <img src="web/public/styles/paper-metaphor.png" alt="纸感隐喻拼贴风" width="120" /> | 价值观、关系、流程、复杂观点 |
+| 3D 黏土趣味风 | <img src="web/public/styles/clay-3d.webp" alt="3D 黏土趣味风" width="120" /> | 亲子教育、轻量品牌、趣味科普 |
+| 赛博霓虹漫画风 | <img src="web/public/styles/cyber-neon.webp" alt="赛博霓虹漫画风" width="120" /> | AI 趋势、数码科技、年轻化观点 |
 
-> 预览图展示的是各风格的视觉方向。实际成片会根据你的文案和分镜生成，人物、物体与场景会随内容变化。
+## 新版本重点
 
-## 开始之前
+这次版本把原先的单任务生成流程，升级为更适合稳定生产的本地工作台：
 
-CS Board 是本地应用，不是 GitHub Pages 网站。运行和生成视频需要以下环境：
+- **三级流水线队列**：最多 2 路独立语音节点、4 路模型调用；本地渲染在模型阶段结束后立即开始。
+- **可靠的继续机制**：模型超时、限流、5xx、空图片或无效分镜会自动重试 3 次；仍失败时可以从断点继续。
+- **重新渲染不重复花钱**：调整笔身文字、重点词、字幕或线条绘制量时，仅执行本地画线与合成。
+- **更适合多人使用**：网页会显示共享任务和队列状态；任务上限为 20 个，避免机器被意外压垮。
 
-| 依赖 | 用途 |
-| --- | --- |
-| Windows 10/11 | 已提供 Windows 一键启动脚本；其他系统可手动启动 |
-| Python 3.11+ | 后端、白板绘制和视频合成 |
-| Node.js 22.13+ | 前端开发服务器 |
-| FFmpeg 与 FFprobe | 音视频处理，需加入系统 `PATH` |
-| IndexTTS 2.5 服务 | 本地音色克隆，支持 Gradio（默认 `7860`）或 FastAPI（默认 `8000`）接口 |
-| OpenLux API Key | 用于 GPT-5 分镜规划与 GPT Image 2 插画生成；使用会产生服务商侧费用 |
+## 环境要求
 
-## 15 分钟本地启动
+- Windows 10/11（当前一键启动与渲染路径面向 Windows）
+- Python 3.11+
+- Node.js 22.13+
+- FFmpeg 与 **FFprobe** 已加入系统 `PATH`
+- 可访问的 IndexTTS 2.5 服务（Gradio 或 FastAPI）
+- OpenLux API Key，且有 GPT-5 与 GPT Image 2 的调用权限
 
-### Windows
+确认音视频依赖可用：
 
-在项目根目录执行：
+```powershell
+ffmpeg -version
+ffprobe -version
+```
+
+> 当前渲染命令使用 Windows 虚拟环境路径；macOS / Linux 用户可自行适配 Python 路径后运行后端，暂不属于开箱即用支持范围。
+
+## 5 分钟启动
+
+在项目根目录执行一次安装：
 
 ```powershell
 python scripts/prepare_env.py
@@ -77,86 +87,89 @@ python scripts/prepare_env.py
 Push-Location web
 npm ci
 Pop-Location
+```
+
+然后任选一种方式启动：
+
+```powershell
+# 方式一：双击项目根目录的「启动白板工坊.bat」
+
+# 方式二：PowerShell
 .\start-webapp.ps1
 ```
 
-脚本会启动前端和后端，并自动打开 `http://127.0.0.1:13000/`。同一局域网的设备也可以使用脚本输出的局域网地址访问。
+脚本会启动前后端并打开 `http://127.0.0.1:13000/`，同时输出可供同一局域网设备访问的地址。
 
-### macOS / Linux
+首次打开后，进入 **API 设置**，填写：
 
-先按系统的方式安装 FFmpeg，再在两个终端分别运行：
+1. OpenLux API Key
+2. 文本模型（默认 `gpt-5`）
+3. 图片模型（默认 `gpt-image-2`）
+4. 语音节点 1 地址与接口类型；如需并发克隆，可再填写语音节点 2
 
-```bash
-# 终端 1：后端
-python3 scripts/prepare_env.py
-.venv/bin/python -m pip install -r webapp/requirements.txt
-# 当前渲染器保留了 Windows 路径，建立兼容链接以支持视频合成
-mkdir -p .venv/Scripts
-ln -sf ../bin/python .venv/Scripts/python.exe
-.venv/bin/python -m uvicorn webapp.server:app --host 127.0.0.1 --port 18765
+默认 Gradio 语音服务地址为 `http://127.0.0.1:7860`；FastAPI 服务通常使用 `8000` 端口。先点击“测试连接”，再提交任务。
+
+## 使用方式
+
+### 标准制作
+
+1. 上传 10–30 秒、单人且噪声较少的参考音频。
+2. 粘贴至少 10 个字的中文文案。
+3. 选择风格与成片设置，点击“开始生成视频”。
+4. 在制作进度区查看任务；完成后在线预览或下载 MP4。
+
+### 自定义参考
+
+适合固定 IP、故事角色或品牌化视觉：
+
+1. 切换至“自定义参考”。
+2. 上传一张风格参考图（控制配色、线条、材质和构图）。
+3. 添加 1–5 个角色；每人填写名称与可选描述，并上传 1–3 张不同角度的参考图。
+4. 系统会依据文案与角色名称安排每幕人物，不会直接复制风格参考图中的人物。
+
+### 重新渲染与恢复
+
+- **从断点继续**：用于调用失败或服务中断后的原任务恢复。
+- **按当前设置重新渲染**：复用已生成的配音、分镜和原图，适合修改笔身文字、字幕、重点词或线条密度；不会再次请求 GPT-5、GPT Image 2 或 IndexTTS。
+
+## 运行与数据
+
+所有运行时文件都在 `.webapp/`：
+
+```text
+.webapp/
+├── config.json          # 本机 API 与语音配置
+├── preferences.json     # 旧版兼容偏好
+└── jobs/<任务 ID>/       # 音频、分镜、图片、检查点、成片与任务元数据
 ```
 
-```bash
-# 终端 2：前端
-cd web
-npm ci
-npm run dev
+密钥、参考音频、图片与成片不应提交到 Git。`.webapp/`、`.env*`、虚拟环境、`node_modules` 和构建产物均已被忽略。若曾误提交 API Key，请立即在服务商后台撤销并重新生成；只删除文件无法清除 Git 历史。
+
+## 开发验证
+
+```powershell
+# 前端构建与页面验证
+Push-Location web
+npm test
+Pop-Location
+
+# 后端任务队列与恢复逻辑测试（依赖 ffprobe）
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
-
-打开 `http://127.0.0.1:13000/` 即可使用。
-
-## 首次配置
-
-打开网页右上角的 **API 设置**，填写并保存以下内容：
-
-1. **OpenLux API Key**：密钥只保存在本机 `.webapp/config.json` 中，网页不会回显完整密钥。
-2. **文本模型**：默认 `gpt-5`，负责分析文案与生成分镜。
-3. **图片模型**：默认 `gpt-image-2`，负责生成分镜插画。
-4. **IndexTTS 地址与接口类型**：默认是 `http://127.0.0.1:7860` 的 Gradio 服务；如果你运行的是 FastAPI 服务，改为对应地址并选择 FastAPI。
-
-点击“测试连接”确认文字模型、图片模型和语音服务都可用。之后只需上传一段 10–30 秒、单人且噪声较少的参考音频，粘贴至少 10 个字的文案，选择画面风格，即可开始生成。
-
-## 常见问题
-
-### 页面显示“后端尚未启动”
-
-确认后端进程正在运行，并检查 `http://127.0.0.1:18765/docs` 是否能打开。Windows 用户可重新运行 `.\start-webapp.ps1`；其他系统需先启动 `uvicorn`，再启动前端。
-
-### 合成视频时提示找不到 FFmpeg 或 FFprobe
-
-安装 FFmpeg，并把 `ffmpeg` 和 `ffprobe` 所在目录加入系统 `PATH`。重新打开终端后执行 `ffmpeg -version` 和 `ffprobe -version`，两条命令都应能返回版本信息。
-
-### IndexTTS 连接失败
-
-确认 IndexTTS 服务已经启动、地址和端口与 API 设置一致。Gradio 模式通常使用 `7860`，FastAPI 模式通常使用 `8000`；本地服务若部署在其他机器，请使用该机器的局域网 IP。
-
-### 模型调用失败或无法生成图片
-
-在 API 设置中重新检查 OpenLux API Key、接口地址及模型名称。确认你的账户具有 `gpt-5` 与 `gpt-image-2` 的调用权限，并留意服务商的余额、额度和请求限制。
-
-## 隐私与安全
-
-- `.webapp/` 保存本机配置、任务文件、参考音频和生成结果，默认已被 Git 忽略。
-- 不要在 Issue、日志、截图或提交记录中发布 API Key、参考音频或生成视频。
-- 发现安全问题时，请不要先创建公开 Issue；详见 [SECURITY.md](SECURITY.md)。
 
 ## 项目结构
 
 ```text
-├── assets/               # 画笔与视觉素材
-├── examples/             # 白板动画示例
-├── scripts/              # 绘制、字幕与音画合成脚本
+├── assets/               # 画笔、视觉风格与参考素材
+├── examples/             # 成片与场景示例
+├── scripts/              # 白板渲染、重点文字和维护脚本
+├── tests/                # 后端队列与断点恢复测试
 ├── web/                  # React + Vinext 前端
 ├── webapp/               # FastAPI 后端
-├── start-webapp.ps1      # Windows 一键启动脚本
+├── start-webapp.ps1      # Windows 一键启动
 └── SKILL.md              # SRT 白板动画工作流说明
 ```
 
-## 反馈
-
-欢迎通过 [Issues](https://github.com/ChenShuo2004/cs-board/issues) 提交 Bug、使用问题与功能建议。提交前请移除 API Key、参考音频和其他私人素材。
-
 ## 许可证
 
-本项目采用 [MIT License](LICENSE)。
-
+本项目采用 [MIT License](LICENSE)。发现安全问题请不要先公开提交 Issue，详见 [SECURITY.md](SECURITY.md)。

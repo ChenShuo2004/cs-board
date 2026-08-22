@@ -69,10 +69,11 @@ class RegionStreamRenderer:
     """持有整段渲染的共享状态；逐区域把 stream 笔迹画进同一张画布。"""
 
     def __init__(self, image_bgr: np.ndarray, annotation: dict, cfg: sr.Config,
-                 hand_png: Path | None, bare_tip: bool) -> None:
+                 hand_png: Path | None, bare_tip: bool, max_skeleton_strokes: int = 96) -> None:
         self.cfg = cfg
         self.ann = annotation
         self.canvas_bgr = sr._hex_to_bgr(cfg.canvas_hex)
+        self.max_skeleton_strokes = max(0, max_skeleton_strokes)
 
         # 输出尺寸：长边限到 cap，对齐到 grid_edge 的偶数倍（编码要求偶数）
         h0, w0 = image_bgr.shape[:2]
@@ -90,16 +91,30 @@ class RegionStreamRenderer:
 
         self.color_img = cv2.resize(image_bgr, (self.out_w, self.out_h), interpolation=cv2.INTER_AREA)
         gray = cv2.cvtColor(self.color_img, cv2.COLOR_BGR2GRAY)
-        self.thresh_map = cv2.adaptiveThreshold(
-            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 10
-        )
+        margin = max(3, min(self.out_h, self.out_w) // 40)
+        corners = [self.color_img[:margin, :margin], self.color_img[:margin, -margin:],
+                   self.color_img[-margin:, :margin], self.color_img[-margin:, -margin:]]
+        corner_pixels = np.concatenate([part.reshape(-1, 3) for part in corners])
+        background_bgr = np.median(corner_pixels, axis=0).astype(np.uint8)
+        self.dark_mode = float(cv2.cvtColor(background_bgr.reshape(1, 1, 3), cv2.COLOR_BGR2GRAY)[0, 0]) < 96
+        if self.dark_mode:
+            # 深色主题依靠亮度/色彩边缘形成金线和霓虹线，不能再按“黑色像素”提取。
+            enhanced = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)
+            edges = cv2.Canny(enhanced, 28, 90, L2gradient=True)
+            edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+            self.thresh_map = np.where(edges > 0, 0, 255).astype(np.uint8)
+            self.canvas_bgr = background_bgr
+        else:
+            self.thresh_map = cv2.adaptiveThreshold(
+                gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 10
+            )
         self.grid_blocks = sr._to_grid_blocks(self.thresh_map, cfg.grid_edge)
         self.active_all = sr._active_mask(self.thresh_map, cfg.grid_edge, cfg.ink_threshold)
         self.ink_pixels = self.thresh_map < cfg.ink_threshold
-        self.ink_paint = np.repeat(self.thresh_map[:, :, None], 3, axis=2).astype(np.float32)
+        self.ink_paint = (self.color_img if self.dark_mode else np.repeat(self.thresh_map[:, :, None], 3, axis=2)).astype(np.float32)
 
         # 背景染成画布底色，让上色阶段背景与起笔一致（不碰墨迹）
-        if cfg.match_bg:
+        if cfg.match_bg and not self.dark_mode:
             self._match_original_background()
 
         # 共享持久画布
@@ -164,32 +179,32 @@ class RegionStreamRenderer:
         return sr.flatten_streams(streams)
 
     def _region_skeleton_strokes(self, allowed: np.ndarray) -> list[list[tuple[int, int]]]:
-        """骨架模式：区域内墨迹细化 + 8 邻接追踪 + 重采样平滑。"""
+        """骨架模式：沿原图真实墨线追踪，不使用会偏离线条的曲线平滑。"""
         cfg = self.cfg
         region_ink = self.ink_pixels & allowed
         if not region_ink.any():
             return []
         skel = sr._zhang_suen_skeleton(region_ink, max_iterations=160)
-        raw = sr.trace_8connected(skel, min_points=cfg.skeleton_min_points)
+        min_points = 4 if self.max_skeleton_strokes == 0 else 10 if self.max_skeleton_strokes >= 96 else 18 if self.max_skeleton_strokes >= 48 else cfg.skeleton_min_points
+        raw = sr.trace_8connected(skel, min_points=min_points)
         if not raw:
             return []
-        spacing = cfg.skeleton_resample_spacing
+        spacing = min(cfg.skeleton_resample_spacing, 2.5)
         out: list[list[tuple[int, int]]] = []
         for stroke in raw:
             pts = [(float(x), float(y)) for x, y in stroke]
             pts = sr._resample_stroke_points(pts, spacing)
-            pts = sr._chaikin_smooth(pts, iterations=1)
-            pts = sr._resample_stroke_points(pts, spacing)
             if len(pts) >= 2 and sr._stroke_cumulative_length(pts)[-1] > 2.0:
                 out.append([(int(round(x)), int(round(y))) for x, y in pts])
-        # 手只画最长的主要轮廓；其余细节在无手的淡入阶段出现。
+        # 优先绘制最长的主要轮廓；数量由页面的“线条绘制量”控制。
         out.sort(
             key=lambda stroke: sr._stroke_cumulative_length(
                 [(float(x), float(y)) for x, y in stroke]
             )[-1],
             reverse=True,
         )
-        return sr._order_skeleton_strokes(out[:36])
+        selected = out[:self.max_skeleton_strokes] if self.max_skeleton_strokes else out
+        return sr._order_skeleton_strokes(selected)
 
     # ── 落墨（限制在 allowed 内）──
     def _reveal_ink_segment(self, a: tuple[int, int], b: tuple[int, int], allowed: np.ndarray) -> None:
@@ -246,8 +261,8 @@ class RegionStreamRenderer:
                         continue
                     self._reveal_ink_segment(samples[k - 1], samples[k], allowed)
             sx, sy = samples[si]
-            lifted = last is not None and any(k in pen_lifts for k in range(last + 1, si + 1))
-            writer.write(self.drawn.astype(np.uint8) if lifted else self._snapshot_with_tip(sx, sy))
+            # 换笔时可以瞬移到下一条线，但显示时笔尖始终落在真实骨架坐标上。
+            writer.write(self._snapshot_with_tip(sx, sy))
             last = si
 
     # ── 添彩段：brush 或 contour-wipe，限制在 allowed 内 ──
@@ -398,10 +413,10 @@ class RegionStreamRenderer:
                         self._lay_ink(writer, ink_frames, samples, pen_lifts, allowed)
                         centers = samples
                     else:
-                        path = self._region_grid_path(allowed)
-                        samples, pen_lifts, _ = self._grid_plan(path) if path else ([], set(), [])
-                        self._lay_ink(writer, ink_frames, samples, pen_lifts, allowed)
-                        centers = [self._cell_center(c) for c in path]
+                        # 骨架识别不到可靠线条时不让手沿网格乱扫；细节交给无手上色阶段。
+                        for _ in range(ink_frames):
+                            writer.write(self.drawn.astype(np.uint8))
+                        centers = []
                 else:
                     path = self._region_grid_path(allowed)
                     if path:
@@ -420,13 +435,18 @@ class RegionStreamRenderer:
                 else:
                     self._wash_brush(writer, color_frames, centers, allowed)
                 cur_ms += color_frames * ms_per_frame
+                # The last part of each board is a clean hold on the complete
+                # generated image. This guarantees that even a short final
+                # narration segment ends on the finished artwork.
+                if idx == len(elements) - 1:
+                    self.drawn[...] = self.color_img.astype(np.float32)
                 fill_static(start_ms + dur_ms)
 
-            # 凝视：补到 total_ms，并确保结尾至少停留 0.5s 完整原图
-            gaze_until = max(total_ms, cur_ms + 500)
-            # 最终帧显示完整原图（凝视）
+            # Never extend a board past its allocated narration time. The old
+            # extra 0.5s per board accumulated and let audio truncate the last
+            # image before it appeared.
             self.drawn[...] = self.color_img.astype(np.float32)
-            fill_static(gaze_until)
+            fill_static(total_ms)
         finally:
             writer.release()
         return raw_path
@@ -482,6 +502,9 @@ def _parse_args(argv=None):
     p.add_argument("--brush-radius", type=int, default=None)
     p.add_argument("--cap-long-edge", type=int, default=None,
                    help="输出长边像素上限（预览可调小加速，默认 1080）")
+    p.add_argument("--stroke-detail", default="detailed",
+                   choices=["light", "standard", "detailed", "full"],
+                   help="手绘线条量: light 24条; standard 48条; detailed 96条; full 全部")
     return p.parse_args(argv)
 
 
@@ -532,11 +555,15 @@ def main(argv=None) -> int:
     raw_path = out_path.with_name(out_path.stem + "_raw.mp4")
 
     hand_png = Path(args.hand) if args.hand else None
-    renderer = RegionStreamRenderer(image_bgr, annotation, cfg, hand_png, args.bare_tip)
+    stroke_limits = {"light": 24, "standard": 48, "detailed": 96, "full": 0}
+    renderer = RegionStreamRenderer(
+        image_bgr, annotation, cfg, hand_png, args.bare_tip,
+        max_skeleton_strokes=stroke_limits[args.stroke_detail],
+    )
     print(f"  输入: {args.image}")
     print(f"  输出尺寸: {renderer.out_w}x{renderer.out_h}, 帧率: {cfg.fps}")
     print(f"  区域数: {len(annotation['elements'])}, 总时长: {total_ms}ms, "
-          f"笔迹: {cfg.ink_path_mode}, 上色: {cfg.color_fill}")
+          f"笔迹: {cfg.ink_path_mode}, 线条量: {args.stroke_detail}, 上色: {cfg.color_fill}")
 
     renderer.render_to(raw_path, total_ms)
     final = sr.transcode_h264(raw_path, out_path)
