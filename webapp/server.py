@@ -1263,6 +1263,141 @@ def custom_reference_context(job_id: str) -> tuple[list[Path], str, str]:
     return paths, "\n".join(lines), "；".join(character_descriptions)
 
 
+_GRADIO_GEN_SINGLE_PROFILE_LOCK = threading.Lock()
+_GRADIO_GEN_SINGLE_PROFILES: dict[str, dict[str, Any]] = {}
+_EMO_SAME_AS_VOICE_CANDIDATES = (
+    "与音色参考音频相同",  # IndexTTS 2.5+
+    "与参考音频的音色相同",  # older Gradio IndexTTS
+)
+
+
+def _gradio_endpoint_param_names(parameters: list[dict[str, Any]]) -> set[str]:
+    names: set[str] = set()
+    for item in parameters:
+        name = item.get("parameter_name") or item.get("label")
+        if name:
+            names.add(str(name))
+    return names
+
+
+def _pick_emo_same_as_voice(parameters: list[dict[str, Any]]) -> str:
+    choices: list[str] = []
+    default: Any = None
+    for item in parameters:
+        name = str(item.get("parameter_name") or "")
+        label = str(item.get("label") or "")
+        if name != "emo_control_method" and "情感控制" not in label:
+            continue
+        default = item.get("parameter_default")
+        type_info = item.get("type")
+        if isinstance(type_info, dict) and isinstance(type_info.get("enum"), list):
+            choices = [str(value) for value in type_info["enum"]]
+        break
+    for candidate in _EMO_SAME_AS_VOICE_CANDIDATES:
+        for choice in choices:
+            if choice.strip() == candidate.strip():
+                return choice
+    if isinstance(default, str) and default.strip():
+        return default
+    if choices:
+        return choices[0]
+    return _EMO_SAME_AS_VOICE_CANDIDATES[1]
+
+
+def _inspect_gradio_gen_single(client: Client, tts_url: str) -> dict[str, Any]:
+    """Feature-detect IndexTTS 2.5-shaped /gen_single APIs; fall back to legacy on errors."""
+    cache_key = str(tts_url or "").rstrip("/")
+    with _GRADIO_GEN_SINGLE_PROFILE_LOCK:
+        cached = _GRADIO_GEN_SINGLE_PROFILES.get(cache_key)
+        if cached is not None:
+            return cached
+
+    profile: dict[str, Any] = {
+        "ok": False,
+        "is_v25": False,
+        "emo_control_method": _EMO_SAME_AS_VOICE_CANDIDATES[1],
+    }
+    try:
+        info = client.view_api(return_format="dict")
+        endpoint = (info.get("named_endpoints") or {}).get("/gen_single") or {}
+        parameters = list(endpoint.get("parameters") or [])
+        names = _gradio_endpoint_param_names(parameters)
+        profile["is_v25"] = "lang_choice" in names or "duration_factor" in names
+        profile["emo_control_method"] = _pick_emo_same_as_voice(parameters)
+        profile["ok"] = True
+    except Exception:
+        # Keep legacy defaults so older IndexTTS installs stay usable.
+        pass
+
+    with _GRADIO_GEN_SINGLE_PROFILE_LOCK:
+        _GRADIO_GEN_SINGLE_PROFILES[cache_key] = profile
+    return profile
+
+
+def _submit_gradio_gen_single(client: Client, reference: Path, copy: str, profile: dict[str, Any]) -> Any:
+    emo_control_method = str(profile.get("emo_control_method") or _EMO_SAME_AS_VOICE_CANDIDATES[1])
+    prompt = handle_file(str(reference))
+    if profile.get("is_v25"):
+        # IndexTTS 2.5 inserted lang_choice + duration_factor into /gen_single.
+        return client.submit(
+            emo_control_method=emo_control_method,
+            prompt=prompt,
+            text=copy,
+            lang_choice="ZH",
+            emo_ref_path=None,
+            emo_weight=0.65,
+            vec1=0,
+            vec2=0,
+            vec3=0,
+            vec4=0,
+            vec5=0,
+            vec6=0,
+            vec7=0,
+            vec8=0,
+            emo_text="",
+            emo_random=False,
+            max_text_tokens_per_segment=120,
+            duration_factor=1.0,
+            param_18=True,
+            param_19=0.8,
+            param_20=30,
+            param_21=0.8,
+            param_22=0.0,
+            param_23=3,
+            param_24=10.0,
+            param_25=1500,
+            api_name="/gen_single",
+        )
+    # Legacy Gradio IndexTTS argument order (pre-2.5).
+    return client.submit(
+        emo_control_method,
+        prompt,
+        copy,
+        None,
+        0.65,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        "",
+        False,
+        120,
+        True,
+        0.8,
+        30,
+        0.8,
+        0.0,
+        3,
+        10.0,
+        1500,
+        api_name="/gen_single",
+    )
+
+
 def _synthesize_voice_once(config: dict[str, Any], reference: Path, copy: str, target: Path) -> None:
     if config.get("tts_mode") == "fastapi":
         with httpx.Client(timeout=900) as client, reference.open("rb") as audio:
@@ -1279,12 +1414,8 @@ def _synthesize_voice_once(config: dict[str, Any], reference: Path, copy: str, t
     # Long-form cloning can keep the GPU busy for several minutes.  The
     # default Gradio HTTP read timeout is too short and abandons a healthy job.
     client = Client(config["tts_url"], verbose=False, httpx_kwargs={"timeout": 1800.0})
-    job = client.submit(
-        "与参考音频的音色相同", handle_file(str(reference)), copy, None, 0.65,
-        0, 0, 0, 0, 0, 0, 0, 0, "", False, 120,
-        True, 0.8, 30, 0.8, 0.0, 3, 10.0, 1500,
-        api_name="/gen_single",
-    )
+    profile = _inspect_gradio_gen_single(client, str(config.get("tts_url") or ""))
+    job = _submit_gradio_gen_single(client, reference, copy, profile)
     result = job.result(timeout=1800)
     # Gradio 4/5 may return a filepath string, while newer IndexTTS builds
     # return FileData as {"path": ..., "url": ...}.
