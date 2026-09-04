@@ -62,7 +62,8 @@
 
 ### 环境要求
 
-- Windows 10/11（已提供一键启动脚本）
+- Windows 10/11（提供 PowerShell 一键启动脚本）
+- macOS 15+（Intel 与 Apple Silicon，提供 shell 一键启动脚本；Remotion 视频渲染要求）
 - Python 3.11+
 - Node.js 22.13+
 - FFmpeg 与 FFprobe，且已加入系统 `PATH`
@@ -95,6 +96,37 @@ Pop-Location
 ```
 
 脚本会启动前后端并打开 [http://127.0.0.1:13000/](http://127.0.0.1:13000/)。同一局域网设备也可以通过脚本输出的地址访问。
+
+### macOS
+
+先安装 Python 3.11+、Node.js 22.13+、FFmpeg 与 FFprobe。使用 Homebrew 时可以执行：
+
+```bash
+brew install python@3.13 node ffmpeg
+```
+
+在项目根目录执行一次安装：
+
+```bash
+python3.13 scripts/prepare_env.py
+.venv/bin/python -m pip install -r webapp/requirements.txt
+(cd web && npm ci)
+```
+
+国内网络安装 Python 依赖较慢时，可以只对当前命令使用清华 PyPI 镜像：
+
+```bash
+PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple python3.13 scripts/prepare_env.py
+PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple .venv/bin/python -m pip install -r webapp/requirements.txt
+```
+
+然后启动工作台：
+
+```bash
+./start-webapp.sh
+```
+
+脚本会启动前后端并打开 [http://127.0.0.1:13000/](http://127.0.0.1:13000/)。如果系统没有自动打开浏览器，也可以手动访问该地址。动态信息图首次运行时会按当前平台准备 Remotion 与 Whisper.cpp 所需资源。macOS 14 及更低版本可以启动界面和 API，但当前 Remotion 版本的视频渲染不保证成功。
 
 ### 首次配置
 
@@ -157,7 +189,8 @@ Pop-Location
 ├── video_renderer/       # Remotion 动态信息图渲染器
 ├── web/                  # React 前端
 ├── webapp/               # FastAPI 后端
-└── start-webapp.ps1      # Windows 一键启动
+├── start-webapp.ps1      # Windows 一键启动
+└── start-webapp.sh       # macOS/Linux 一键启动
 ```
 
 ## 贡献

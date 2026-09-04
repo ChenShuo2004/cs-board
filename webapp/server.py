@@ -9,6 +9,7 @@ import queue
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 import uuid
@@ -27,12 +28,16 @@ STATE_DIR = ROOT / ".webapp"
 JOBS_DIR = STATE_DIR / "jobs"
 CONFIG_PATH = STATE_DIR / "config.json"
 PREFERENCES_PATH = STATE_DIR / "preferences.json"
-PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
+PYTHON = Path(sys.executable)
 NODE = shutil.which("node") or "node"
 REMOTION_RENDERER = ROOT / "video_renderer"
 HAND = ROOT / "assets" / "drawing-hand-clean.png"
 PIPELINE_VERSION = "narrated_deck_v8_oil_visual"
 ALIGNMENT_SEGMENTATION = "word-boundary-dtw-audio-v2"
+SUBTITLE_FONT = os.environ.get(
+    "CS_BOARD_SUBTITLE_FONT",
+    "PingFang SC" if sys.platform == "darwin" else "Microsoft YaHei",
+)
 
 DEFAULT_CONFIG = {
     "api_key": "",
@@ -1410,7 +1415,15 @@ def make_branded_hand(text: str, target: Path) -> Path:
         return HAND
     hand = Image.open(HAND).convert("RGBA")
     label = text.strip()[:12]
-    font_paths = [Path("C:/Windows/Fonts/msyhbd.ttc"), Path("C:/Windows/Fonts/msyh.ttc"), Path("C:/Windows/Fonts/simhei.ttf")]
+    font_paths = [
+        Path("C:/Windows/Fonts/msyhbd.ttc"),
+        Path("C:/Windows/Fonts/msyh.ttc"),
+        Path("C:/Windows/Fonts/simhei.ttf"),
+        Path("/System/Library/Fonts/PingFang.ttc"),
+        Path("/System/Library/Fonts/STHeiti Medium.ttc"),
+        Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"),
+        Path("/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc"),
+    ]
     font_path = next((p for p in font_paths if p.exists()), None)
     font = ImageFont.truetype(str(font_path), 58) if font_path else ImageFont.load_default()
     strip = Image.new("RGBA", (430, 104), (0, 0, 0, 0))
@@ -1801,7 +1814,7 @@ def render_generated_job(job_id: str, scenes: list[dict[str, Any]], boards: list
             if include_subtitles:
                 subtitles = job_dir / "subtitles.srt"
                 write_subtitles(scenes, subtitles)
-                subtitle_filter = "subtitles=subtitles.srt:force_style='FontName=Microsoft YaHei,FontSize=20,PrimaryColour=&H00FFFFFF,OutlineColour=&H00202020,BorderStyle=1,Outline=2,Shadow=0,MarginV=28,Alignment=2'"
+                subtitle_filter = f"subtitles=subtitles.srt:force_style='FontName={SUBTITLE_FONT},FontSize=20,PrimaryColour=&H00FFFFFF,OutlineColour=&H00202020,BorderStyle=1,Outline=2,Shadow=0,MarginV=28,Alignment=2'"
                 ffmpeg_command.extend(["-vf", subtitle_filter])
             ffmpeg_command.extend(["-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "-shortest", partial_final.name])
             run(ffmpeg_command, cwd=job_dir, job_id=job_id)
@@ -1871,7 +1884,7 @@ def rerender_job(job_id: str, scenes_per_image: int, pen_text: str, include_key_
             if include_subtitles:
                 subtitles = job_dir / "subtitles.srt"
                 write_subtitles(scenes, subtitles)
-                subtitle_filter = "subtitles=subtitles.srt:force_style='FontName=Microsoft YaHei,FontSize=20,PrimaryColour=&H00FFFFFF,OutlineColour=&H00202020,BorderStyle=1,Outline=2,Shadow=0,MarginV=28,Alignment=2'"
+                subtitle_filter = f"subtitles=subtitles.srt:force_style='FontName={SUBTITLE_FONT},FontSize=20,PrimaryColour=&H00FFFFFF,OutlineColour=&H00202020,BorderStyle=1,Outline=2,Shadow=0,MarginV=28,Alignment=2'"
                 ffmpeg_command.extend(["-vf", subtitle_filter])
             ffmpeg_command.extend(["-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "-shortest", partial_final.name])
             run(ffmpeg_command, cwd=job_dir, job_id=job_id)
