@@ -8,6 +8,23 @@
 
 ![白板动画成片示例](examples/scene-01-monkey-mountain-banana-whiteboard.gif)
 
+## 赞助商
+
+<table>
+  <tr>
+    <td width="220" align="center" valign="middle">
+      <a href="https://metaso.cn/minimax-h3/?s=cs-board">
+        <img src="assets/sponsors/metaso.png" width="200" alt="秘塔科技 META SOTA">
+      </a>
+    </td>
+    <td valign="middle">
+      <b>MiniMax H3 视频生成 API｜秘塔科技</b><br>
+      秘塔科技提供高性价比的 MiniMax H3 视频生成服务：<b>768P 仅 0.09 元/秒，2K 仅 0.15 元/秒</b>。支持原生 2K、音画同步，API 兼容 <b>OpenAI 协议</b>，同时支持 <b>ComfyUI</b>，无需自行部署 GPU。<br><br>
+      🎁 通过 <a href="https://metaso.cn/minimax-h3/?s=cs-board">cs-board专属链接注册</a>，即可领取赠送额度及专属优惠。
+    </td>
+  </tr>
+</table>
+
 ## 你可以用它做什么
 
 ```text
