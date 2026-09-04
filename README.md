@@ -70,7 +70,16 @@
 - 可访问的 IndexTTS 2.5 服务（Gradio 或 FastAPI）
 - OpenLux API Key，并有文本模型与图片模型的调用权限
 
-先确认音视频依赖可用：
+先确认音视频依赖可用。
+
+macOS/Linux：
+
+```bash
+ffmpeg -version
+ffprobe -version
+```
+
+Windows PowerShell：
 
 ```powershell
 ffmpeg -version
@@ -168,6 +177,21 @@ PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple .venv/bin/python -m pip i
 
 ## 开发验证
 
+### macOS/Linux
+
+```bash
+# 前端构建与页面验证
+(cd web && npm test)
+
+# 后端任务队列、断点恢复与时间线测试
+.venv/bin/python -m unittest discover -s tests -v
+
+# Remotion 类型检查
+(cd video_renderer && npm run build)
+```
+
+### Windows PowerShell
+
 ```powershell
 # 前端构建与页面验证
 Push-Location web
@@ -176,6 +200,11 @@ Pop-Location
 
 # 后端任务队列、断点恢复与时间线测试
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
+
+# Remotion 类型检查
+Push-Location video_renderer
+npm run build
+Pop-Location
 ```
 
 ## 项目结构
