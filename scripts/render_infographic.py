@@ -12,17 +12,27 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 W, H, FPS = 1920, 1080, 30
+FONT_DIRS = (
+    Path("C:/Windows/Fonts"),
+    Path("/System/Library/Fonts"),
+    Path("/usr/share/fonts/opentype/noto"),
+    Path("/usr/share/fonts/truetype/noto"),
+)
 
 
 def font(size: int, serif: bool = False, bold: bool = False) -> ImageFont.FreeTypeFont:
-    root = Path("C:/Windows/Fonts")
-    names = (["simhei.ttf", "msyhbd.ttc"] if bold else
-             ["simkai.ttf", "simsun.ttc"] if serif else
-             ["msyh.ttc", "simhei.ttf"])
-    for name in names:
-        path = root / name
-        if path.exists():
-            return ImageFont.truetype(str(path), size=size)
+    names = (
+        ["simhei.ttf", "msyhbd.ttc", "PingFang.ttc", "STHeiti Medium.ttc", "NotoSansCJK-Bold.ttc"]
+        if bold
+        else ["simkai.ttf", "simsun.ttc", "PingFang.ttc", "Hiragino Sans GB.ttc", "NotoSansCJK-Regular.ttc"]
+        if serif
+        else ["msyh.ttc", "simhei.ttf", "PingFang.ttc", "STHeiti Medium.ttc", "NotoSansCJK-Regular.ttc"]
+    )
+    for directory in FONT_DIRS:
+        for name in names:
+            path = directory / name
+            if path.exists():
+                return ImageFont.truetype(str(path), size=size)
     return ImageFont.load_default()
 
 

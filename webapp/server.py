@@ -9,6 +9,7 @@ import queue
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 import uuid
@@ -27,12 +28,16 @@ STATE_DIR = ROOT / ".webapp"
 JOBS_DIR = STATE_DIR / "jobs"
 CONFIG_PATH = STATE_DIR / "config.json"
 PREFERENCES_PATH = STATE_DIR / "preferences.json"
-PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
+PYTHON = Path(sys.executable)
 NODE = shutil.which("node") or "node"
 REMOTION_RENDERER = ROOT / "video_renderer"
 HAND = ROOT / "assets" / "drawing-hand-clean.png"
 PIPELINE_VERSION = "narrated_deck_v8_oil_visual"
 ALIGNMENT_SEGMENTATION = "word-boundary-dtw-audio-v2"
+SUBTITLE_FONT = os.environ.get(
+    "CS_BOARD_SUBTITLE_FONT",
+    "PingFang SC" if sys.platform == "darwin" else "Microsoft YaHei",
+)
 
 DEFAULT_CONFIG = {
     "api_key": "",
@@ -1280,8 +1285,8 @@ def _synthesize_voice_once(config: dict[str, Any], reference: Path, copy: str, t
     # default Gradio HTTP read timeout is too short and abandons a healthy job.
     client = Client(config["tts_url"], verbose=False, httpx_kwargs={"timeout": 1800.0})
     job = client.submit(
-        "与参考音频的音色相同", handle_file(str(reference)), copy, None, 0.65,
-        0, 0, 0, 0, 0, 0, 0, 0, "", False, 120,
+        "Same as the voice reference", handle_file(str(reference)), copy, "ZH", None, 0.65,
+        0, 0, 0, 0, 0, 0, 0, 0, "", False, 120, 1.0,
         True, 0.8, 30, 0.8, 0.0, 3, 10.0, 1500,
         api_name="/gen_single",
     )
@@ -1410,7 +1415,15 @@ def make_branded_hand(text: str, target: Path) -> Path:
         return HAND
     hand = Image.open(HAND).convert("RGBA")
     label = text.strip()[:12]
-    font_paths = [Path("C:/Windows/Fonts/msyhbd.ttc"), Path("C:/Windows/Fonts/msyh.ttc"), Path("C:/Windows/Fonts/simhei.ttf")]
+    font_paths = [
+        Path("C:/Windows/Fonts/msyhbd.ttc"),
+        Path("C:/Windows/Fonts/msyh.ttc"),
+        Path("C:/Windows/Fonts/simhei.ttf"),
+        Path("/System/Library/Fonts/PingFang.ttc"),
+        Path("/System/Library/Fonts/STHeiti Medium.ttc"),
+        Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"),
+        Path("/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc"),
+    ]
     font_path = next((p for p in font_paths if p.exists()), None)
     font = ImageFont.truetype(str(font_path), 58) if font_path else ImageFont.load_default()
     strip = Image.new("RGBA", (430, 104), (0, 0, 0, 0))
@@ -1481,6 +1494,138 @@ def write_subtitles(scenes: list[dict[str, Any]], target: Path) -> None:
     for i, (start, end, text) in enumerate(cues, 1):
         lines.extend([str(i), f"{_srt_time(start)} --> {_srt_time(end)}", text, ""])
     target.write_text("\n".join(lines), encoding="utf-8")
+
+
+def _ffmpeg_has_filter(filter_name: str) -> bool:
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        return False
+    try:
+        result = subprocess.run(
+            [ffmpeg, "-hide_banner", "-filters"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return bool(re.search(rf"(?m)^\s*\S+\s+{re.escape(filter_name)}(?:\s|$)", result.stdout + result.stderr))
+
+
+def _parse_srt_time(value: str) -> int:
+    match = re.fullmatch(r"(\d+):(\d{2}):(\d{2})[,.](\d{3})", value.strip())
+    if not match:
+        raise ValueError(f"无法解析字幕时间：{value}")
+    hours, minutes, seconds, milliseconds = (int(part) for part in match.groups())
+    return ((hours * 60 + minutes) * 60 + seconds) * 1000 + milliseconds
+
+
+def _read_srt_cues(source: Path) -> list[tuple[int, int, str]]:
+    cues: list[tuple[int, int, str]] = []
+    blocks = re.split(r"\r?\n\s*\r?\n", source.read_text(encoding="utf-8-sig"))
+    for block in blocks:
+        lines = [line.rstrip() for line in block.splitlines()]
+        time_index = next((index for index, line in enumerate(lines) if "-->" in line), None)
+        if time_index is None:
+            continue
+        start_text, end_text = (part.strip() for part in lines[time_index].split("-->", 1))
+        text = "\n".join(line for line in lines[time_index + 1:] if line).strip()
+        if text:
+            cues.append((_parse_srt_time(start_text), _parse_srt_time(end_text), text))
+    return cues
+
+
+def _subtitle_font_path() -> Path | None:
+    candidates = [
+        Path("/System/Library/Fonts/PingFang.ttc"),
+        Path("/System/Library/Fonts/STHeiti Medium.ttc"),
+        Path("/System/Library/Fonts/Supplemental/Songti.ttc"),
+        Path("C:/Windows/Fonts/msyh.ttc"),
+        Path("C:/Windows/Fonts/simhei.ttf"),
+        Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
+        Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"),
+        Path("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"),
+    ]
+    return next((path for path in candidates if path.exists()), None)
+
+
+def _render_subtitles_with_pillow(video: Path, subtitles: Path, target: Path, job_id: str | None = None) -> None:
+    import cv2
+    import numpy as np
+    from PIL import Image, ImageDraw, ImageFont
+
+    cues = _read_srt_cues(subtitles)
+    capture = cv2.VideoCapture(str(video))
+    if not capture.isOpened():
+        raise RuntimeError(f"无法读取字幕视频：{video.name}")
+    fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
+    width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    writer = cv2.VideoWriter(
+        str(target),
+        cv2.VideoWriter_fourcc(*"mp4v"),
+        fps,
+        (width, height),
+    )
+    if not writer.isOpened():
+        capture.release()
+        raise RuntimeError("无法创建字幕视频")
+    font_path = _subtitle_font_path()
+    font_size = max(24, round(height * 20 / 1080))
+    font = ImageFont.truetype(str(font_path), font_size) if font_path else ImageFont.load_default()
+    stroke_width = max(2, round(font_size / 10))
+    cue_index = 0
+    frame_index = 0
+    try:
+        while True:
+            success, frame = capture.read()
+            if not success:
+                break
+            timestamp_ms = round(frame_index * 1000 / fps)
+            while cue_index < len(cues) and timestamp_ms >= cues[cue_index][1]:
+                cue_index += 1
+            if cue_index < len(cues) and cues[cue_index][0] <= timestamp_ms < cues[cue_index][1]:
+                text = cues[cue_index][2]
+                image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                draw = ImageDraw.Draw(image)
+                box = draw.multiline_textbbox((0, 0), text, font=font, stroke_width=stroke_width, spacing=4)
+                text_width = box[2] - box[0]
+                text_height = box[3] - box[1]
+                x = (width - text_width) / 2 - box[0]
+                y = height - max(28, round(height * 28 / 1080)) - text_height - box[1]
+                draw.multiline_text(
+                    (x, y),
+                    text,
+                    font=font,
+                    fill=(255, 255, 255),
+                    stroke_width=stroke_width,
+                    stroke_fill=(32, 32, 32),
+                    spacing=4,
+                    align="center",
+                )
+                frame = cv2.cvtColor(np.asarray(image), cv2.COLOR_RGB2BGR)
+            writer.write(frame)
+            frame_index += 1
+            if job_id and frame_index % 30 == 0:
+                ensure_job_active(job_id)
+    finally:
+        capture.release()
+        writer.release()
+
+
+def _subtitle_video_input(video: Path, subtitles: Path, fallback_target: Path, job_id: str | None = None) -> tuple[Path, str | None]:
+    if _ffmpeg_has_filter("subtitles"):
+        style = (
+            f"FontName={SUBTITLE_FONT},FontSize=20,PrimaryColour=&H00FFFFFF,"
+            "OutlineColour=&H00202020,BorderStyle=1,Outline=2,Shadow=0,MarginV=28,Alignment=2"
+        )
+        return video, f"subtitles=filename='{subtitles.name}':force_style='{style}'"
+    fallback_target.unlink(missing_ok=True)
+    _render_subtitles_with_pillow(video, subtitles, fallback_target, job_id)
+    return fallback_target, None
 
 
 def remotion_infographic_props(scenes: list[dict[str, Any]], style: str, duration_ms: int, subtitles_enabled: bool = False) -> dict[str, Any]:
@@ -1797,11 +1942,19 @@ def render_generated_job(job_id: str, scenes: list[dict[str, Any]], boards: list
         if not valid_media_file(final):
             partial_final = job_dir / f"{final.stem}.partial.mp4"
             partial_final.unlink(missing_ok=True)
-            ffmpeg_command = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", silent.name, "-i", "voice.wav", "-map", "0:v:0", "-map", "1:a:0"]
+            video_input = silent
+            subtitle_filter = None
             if include_subtitles:
                 subtitles = job_dir / "subtitles.srt"
                 write_subtitles(scenes, subtitles)
-                subtitle_filter = "subtitles=subtitles.srt:force_style='FontName=Microsoft YaHei,FontSize=20,PrimaryColour=&H00FFFFFF,OutlineColour=&H00202020,BorderStyle=1,Outline=2,Shadow=0,MarginV=28,Alignment=2'"
+                video_input, subtitle_filter = _subtitle_video_input(
+                    silent,
+                    subtitles,
+                    job_dir / f"{final.stem}.subtitles.mp4",
+                    job_id,
+                )
+            ffmpeg_command = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", video_input.name, "-i", "voice.wav", "-map", "0:v:0", "-map", "1:a:0"]
+            if subtitle_filter:
                 ffmpeg_command.extend(["-vf", subtitle_filter])
             ffmpeg_command.extend(["-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "-shortest", partial_final.name])
             run(ffmpeg_command, cwd=job_dir, job_id=job_id)
@@ -1867,11 +2020,19 @@ def rerender_job(job_id: str, scenes_per_image: int, pen_text: str, include_key_
         if not valid_media_file(final):
             partial_final = job_dir / "final.partial.mp4"
             partial_final.unlink(missing_ok=True)
-            ffmpeg_command = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", "silent.mp4", "-i", "voice.wav", "-map", "0:v:0", "-map", "1:a:0"]
+            video_input = job_dir / "silent.mp4"
+            subtitle_filter = None
             if include_subtitles:
                 subtitles = job_dir / "subtitles.srt"
                 write_subtitles(scenes, subtitles)
-                subtitle_filter = "subtitles=subtitles.srt:force_style='FontName=Microsoft YaHei,FontSize=20,PrimaryColour=&H00FFFFFF,OutlineColour=&H00202020,BorderStyle=1,Outline=2,Shadow=0,MarginV=28,Alignment=2'"
+                video_input, subtitle_filter = _subtitle_video_input(
+                    video_input,
+                    subtitles,
+                    job_dir / "final.subtitles.mp4",
+                    job_id,
+                )
+            ffmpeg_command = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", video_input.name, "-i", "voice.wav", "-map", "0:v:0", "-map", "1:a:0"]
+            if subtitle_filter:
                 ffmpeg_command.extend(["-vf", subtitle_filter])
             ffmpeg_command.extend(["-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "-shortest", partial_final.name])
             run(ffmpeg_command, cwd=job_dir, job_id=job_id)
