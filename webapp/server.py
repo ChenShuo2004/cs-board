@@ -44,6 +44,8 @@ DEFAULT_CONFIG = {
     "base_url": "https://api.openlux.ai/v1",
     "text_model": "gpt-5",
     "image_model": "gpt-image-2",
+    "image_base_url": "",
+    "image_api_key": "",
     "tts_url": "http://127.0.0.1:7860",
     "tts_url_2": "",
     "tts_mode": "gradio",
@@ -368,9 +370,11 @@ def load_config() -> dict[str, Any]:
 
 def safe_config(data: dict[str, Any]) -> dict[str, Any]:
     result = data.copy()
-    key = result.get("api_key", "")
-    result["api_key"] = "" if not key else f"{key[:4]}••••{key[-4:]}"
-    result["has_api_key"] = bool(key)
+    for masked_key in ("api_key", "image_api_key"):
+        key = result.get(masked_key, "")
+        result[masked_key] = "" if not key else f"{key[:4]}••••{key[-4:]}"
+    result["has_api_key"] = bool(data.get("api_key"))
+    result["has_image_api_key"] = bool(data.get("image_api_key"))
     return result
 
 
@@ -639,6 +643,24 @@ class ProviderHTTPError(RuntimeError):
 
 def provider_retry_delay(attempt: int) -> int:
     return (3, 8, 15)[min(attempt, 2)]
+
+
+def image_provider_config(config: dict[str, Any]) -> dict[str, Any]:
+    """Allow image calls to use a dedicated provider endpoint.
+
+    Image requests may target a different gateway than text requests (for
+    example an OpenAI-compatible aggregator that only serves GPT Image).
+    Empty values fall back to the shared base_url / api_key so existing
+    configs keep working unchanged.
+    """
+    resolved = dict(config)
+    base_url = str(config.get("image_base_url") or "").strip()
+    api_key = str(config.get("image_api_key") or "").strip()
+    if base_url:
+        resolved["base_url"] = base_url
+    if api_key:
+        resolved["api_key"] = api_key
+    return resolved
 
 
 def provider_post(config: dict[str, Any], endpoint: str, payload: dict[str, Any], timeout: float = 1800, job_id: str | None = None) -> dict[str, Any]:
@@ -1161,6 +1183,7 @@ PPT 已确定的视觉策略：{scene.get('visual_strategy', '左侧文字，右
 
 def generate_image(config: dict[str, Any], prompt: str, target: Path, reference_images: list[Path] | None = None, job_id: str | None = None) -> None:
     # OpenLux documents a 1000-character limit for this GPT Image route.
+    config = image_provider_config(config)
     compact_prompt = prompt if len(prompt) <= 1000 else f"{prompt[:830]}\n{prompt[-160:]}"
     request_payload = {
         "model": config["image_model"],
@@ -2342,11 +2365,15 @@ def get_config() -> dict[str, Any]:
 @app.post("/api/config")
 def save_config(payload: dict[str, Any]) -> dict[str, Any]:
     current = load_config()
+    masked_keys = ("api_key", "image_api_key")
+    clearable_keys = ("tts_url_2", "image_base_url", "image_api_key")
     for key in DEFAULT_CONFIG:
         value = payload.get(key)
-        if key == "api_key" and isinstance(value, str) and "••••" in value:
+        if key in masked_keys and isinstance(value, str) and "••••" in value:
             continue
-        if key == "tts_url_2" and isinstance(value, str):
+        # Optional string fields must accept an empty value so the user can
+        # switch back to the shared provider without editing the JSON file.
+        if key in clearable_keys and isinstance(value, str):
             current[key] = value.strip()
             continue
         if value not in (None, ""):
@@ -2361,9 +2388,9 @@ def save_config(payload: dict[str, Any]) -> dict[str, Any]:
 def test_config(payload: dict[str, Any]) -> dict[str, Any]:
     config = load_config()
     for key, value in payload.items():
-        if key not in DEFAULT_CONFIG or (key == "api_key" and isinstance(value, str) and "••••" in value):
+        if key not in DEFAULT_CONFIG or (key in ("api_key", "image_api_key") and isinstance(value, str) and "••••" in value):
             continue
-        if key == "tts_url_2" and isinstance(value, str):
+        if key in ("tts_url_2", "image_base_url", "image_api_key") and isinstance(value, str):
             config[key] = value.strip()
         elif value:
             config[key] = value
@@ -2374,7 +2401,7 @@ def test_config(payload: dict[str, Any]) -> dict[str, Any]:
     except Exception as exc:
         results["openlux"] = {"ok": False, "message": str(exc)}
     try:
-        models = provider_models(config)
+        models = provider_models(image_provider_config(config))
         image_model = str(config["image_model"])
         if models and image_model not in models:
             raise RuntimeError(f"当前 Key 的模型列表中没有 {image_model}")
