@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="204" viewBox="0 0 1000 204" role="img" aria-labelledby="title desc">
+  <title id="title">CS Board video production workflow</title>
+  <desc id="desc">A Chinese script and voice sample become planned scenes, whiteboard animation or a dynamic infographic, subtitles, and an MP4</desc>
+  <rect width="1000" height="204" rx="22" fill="#fbf7ef"/>
+  <g font-family="Arial, sans-serif" text-anchor="middle">
+    <text x="500" y="30" fill="#9a7558" font-size="16" font-weight="700" letter-spacing="2">FROM SCRIPT TO VIDEO</text>
+    <g fill="#fff" stroke="#ddcbb4" stroke-width="2">
+      <rect x="28" y="60" width="172" height="96" rx="16"/>
+      <rect x="220" y="60" width="172" height="96" rx="16"/>
+      <rect x="412" y="60" width="172" height="96" rx="16"/>
+      <rect x="604" y="60" width="172" height="96" rx="16"/>
+    </g>
+    <rect x="796" y="60" width="176" height="96" rx="16" fill="#d9764d"/>
+    <g fill="#302d29" font-size="18" font-weight="700">
+      <text x="114" y="98">Chinese script</text><text x="114" y="126">+ voice sample</text>
+      <text x="306" y="98">Voice cloning</text><text x="306" y="126">+ scene planning</text>
+      <text x="498" y="98">Visuals</text><text x="498" y="126">Draw / infographic</text>
+      <text x="690" y="98">Subtitles + AV</text><text x="690" y="126">rendering</text>
+    </g>
+    <text x="884" y="116" fill="#fff" font-size="27" font-weight="800">MP4 video</text>
+    <g fill="#b86e48" font-size="29" font-weight="700">
+      <text x="210" y="118">›</text><text x="402" y="118">›</text><text x="594" y="118">›</text><text x="786" y="118">›</text>
+    </g>
+    <text x="500" y="186" fill="#766858" font-size="15">Standard / custom: whiteboard animation · Infographic: timed to narration</text>
+  </g>
+</svg>

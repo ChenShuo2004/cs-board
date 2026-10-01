@@ -1,12 +1,32 @@
-# 有温度出品｜白板声画工坊
+[![中文](https://img.shields.io/badge/%E4%B8%AD%E6%96%87-8d4d2e?style=for-the-badge)](README.md)
+[![English](https://img.shields.io/badge/English-f3dfc7?style=for-the-badge&labelColor=f3dfc7&color=bc7650)](README.en.md)
+[![关注作者 X](https://img.shields.io/badge/%E5%85%B3%E6%B3%A8%E4%BD%9C%E8%80%85-%40ChenshuoAI-bc7650?style=for-the-badge&logo=x&logoColor=white)](https://x.com/ChenshuoAI)
 
-> 把你的表达，做成一支会说话的视频。
+🚀 **[从一段文案开始制作视频](#安装)**
 
-白板声画工坊是一个本地运行的 AI 视频制作工作台。上传一段参考音频、粘贴中文文案，选择视觉模板或提供人物与风格参考，系统会自动完成音色克隆、内容拆解、插画、手绘笔迹、字幕与音画合成，并导出 MP4。
+[![CS Board 白板声画工坊封面](assets/cs-board-cover.svg)](#安装)
 
-素材、密钥、任务历史和成片默认都保留在本机；同一局域网内的团队也可以共用一条制作队列。
+# CS Board · 白板声画工坊
+
+**把你的表达，做成一支会说话的视频。** 上传参考音频、粘贴中文文案，选择视觉模板或提供人物与风格参考，工作台会串起音色克隆、内容拆解、插画、手绘动画、字幕与音画合成，导出 MP4。
+
+这是一个本地运行的 AI 视频制作工作台。素材、密钥、任务历史和成片默认保存在本机；同一局域网内的团队也可以共用制作队列。
+
+<img src="assets/cs-board-pipeline.svg" alt="参考声音与中文文案 → 音色和内容拆解 → 手绘动画或动态信息图 → 字幕与音画合成 → MP4" width="1000">
+
+| 制作模式 | 输入方式 | 适合的内容 |
+| --- | --- | --- |
+| **标准制作** | 参考音频 + 中文文案 + 视觉模板 | 知识讲解、故事口播、课程宣传。 |
+| **自定义参考** | 再加入风格图与人物参考 | 固定 IP、品牌视频、系列内容。 |
+| **动态信息图** | 让图文元素跟随真实旁白时间展开 | 观点表达、商业分析、课程内容。 |
+
+## 看一支实际成片
+
+下面的动图来自仓库的白板动画示例，展示手绘笔迹与画面呈现过程。[查看示例素材](examples/)。
 
 ![白板动画成片示例](examples/scene-01-monkey-mountain-banana-whiteboard.gif)
+
+想看实际工作台，可以直接跳到[界面预览](#界面预览)：音色库、画风库、任务历史、IndexTTS 设置和文生图页面均使用仓库内的真实截图。
 
 ## 赞助商
 
@@ -25,30 +45,132 @@
   </tr>
 </table>
 
-## 你可以用它做什么
+## 安装
 
-```text
-参考音频 + 中文文案 +（可选）风格 / 人物参考
-                    ↓
-音色克隆 → 内容拆解 → 统一画面 → 动画渲染 → 字幕与音画合成
-                    ↓
-                 MP4 成片
+### 环境要求
+
+- Windows 10/11（提供 PowerShell 一键启动脚本）
+- macOS 15+（Intel 与 Apple Silicon，提供 shell 一键启动脚本；Remotion 视频渲染要求）
+- Python 3.11+
+- Node.js 22.13+
+- FFmpeg 与 FFprobe，且已加入系统 `PATH`
+- 可访问的 IndexTTS 2.5 服务（Gradio 或 FastAPI）
+- OpenLux API Key，并有文本模型与图片模型的调用权限
+
+先取得项目代码，后续命令均在仓库根目录运行：
+
+```bash
+git clone https://github.com/ChenShuo2004/cs-board.git
+cd cs-board
 ```
 
-| 制作模式 | 适合什么 | 你得到什么 |
-| --- | --- | --- |
-| 标准制作 | 知识讲解、故事口播、课程宣传 | 自动拆分分镜，生成插画并绘制白板动画。 |
-| 自定义参考 | 固定 IP、品牌视频、系列内容 | 上传一张风格图和人物参考，让画风与角色贯穿全片。 |
-| 动态信息图 | 观点表达、商业分析、课程内容 | 根据真实旁白时间生成随讲解展开的动态知识卡片。 |
+先确认音视频依赖可用。
 
-## 近期改动
+macOS/Linux：
 
-- **音色库独立管理**：集中上传、试听、搜索和分页浏览参考音频，支持重命名、删除，并在制作台直接复用。
-- **画风库统一管理**：内置与自定义画风统一展示，支持搜索、分页、预览和完整字段详情；可编辑生成配方，为自定义画风上传预览图。
-- **生成历史与任务详情**：搜索历史任务，查看生成图片、制作参数、参考素材与成片；复用设置重新制作，或修改单张图片提示词后重新生成。
-- **独立 IndexTTS 设置**：集中配置语音节点、情绪控制和推理参数；最终 MP4 可另存到指定输出目录。
-- **新增文生图工作台**：通过 `/image-generator` 单独生成图片，复用 API 设置与画风库，支持尺寸、质量选择和 PNG 下载，无需先提交视频任务。
-- **手绘节奏优化**：将相邻笔画按对象分组，结合笔画长度与转折复杂度分配绘制时间，减少跨对象跳笔。
+```bash
+ffmpeg -version
+ffprobe -version
+```
+
+Windows PowerShell：
+
+```powershell
+ffmpeg -version
+ffprobe -version
+```
+
+### Windows
+
+在项目根目录执行一次安装：
+
+```powershell
+python scripts/prepare_env.py
+.\.venv\Scripts\python.exe -m pip install -r webapp\requirements.txt
+Push-Location web
+npm ci
+Pop-Location
+```
+
+然后启动工作台：
+
+```powershell
+.\start-webapp.ps1
+```
+
+脚本会启动前后端并打开 [http://127.0.0.1:13000/](http://127.0.0.1:13000/)。同一局域网设备也可以通过脚本输出的地址访问。
+
+### macOS
+
+先安装 Python 3.11+、Node.js 22.13+、FFmpeg 与 FFprobe。使用 Homebrew 时可以执行：
+
+```bash
+brew install python@3.13 node ffmpeg
+```
+
+在项目根目录执行一次安装：
+
+```bash
+python3.13 scripts/prepare_env.py
+.venv/bin/python -m pip install -r webapp/requirements.txt
+(cd web && npm ci)
+```
+
+国内网络安装 Python 依赖较慢时，可以只对当前命令使用清华 PyPI 镜像：
+
+```bash
+PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple python3.13 scripts/prepare_env.py
+PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple .venv/bin/python -m pip install -r webapp/requirements.txt
+```
+
+然后启动工作台：
+
+```bash
+./start-webapp.sh
+```
+
+网页版与 macOS DMG 使用相同的本地端口（`13000` 和 `18765`），启动网页版前请先退出 **CSBoard.app**；启动脚本会检测端口占用并给出提示，不会误连接到 DMG 的服务。
+
+脚本会启动前后端并打开 [http://127.0.0.1:13000/](http://127.0.0.1:13000/)。如果系统没有自动打开浏览器，也可以手动访问该地址。动态信息图首次运行时会按当前平台准备 Remotion 与 Whisper.cpp 所需资源。macOS 14 及更低版本可以启动界面和 API，但当前 Remotion 版本的视频渲染不保证成功。
+
+### 首次配置
+
+打开右上角的 **API 设置**，填写并测试以下内容：
+
+1. **OpenLux API Key**：只保存在本机 `.webapp/config.json`，页面不会回显完整密钥。
+2. **文本模型**：默认 `gpt-5`，用于拆解文案、生成分镜或信息图结构。
+3. **图片模型**：默认 `gpt-image-2`，用于生成插画。
+4. **图片接口地址 / 图片 API Key（可选）**：留空时图片调用与文本使用同一个服务入口。如果文本与图片来自不同供应商（例如聚合网关只提供 GPT Image），可在这里单独填写图片服务的地址和密钥；两者也可以只填其一，未填写的一项自动沿用上方配置。密钥同样只保存在本机且不回显。
+5. **IndexTTS 地址与接口类型**：Gradio 通常为 `http://127.0.0.1:7860`，FastAPI 通常为 `8000` 端口。
+6. **视频输出目录**：macOS 可点击“选择文件夹”打开系统目录选择器，也可以填写 macOS/Windows 上的绝对路径；留空时最终视频只保存在任务历史目录。设置后只复制最终 MP4，中间图片、音频和检查点仍保存在 `.webapp/jobs/<任务 ID>/`。
+
+测试连接成功后，上传 10–30 秒、单人且噪声较少的参考音频，粘贴至少 10 个字的中文文案，选择制作模式和视觉模板即可开始。
+
+### 独立资源页面
+
+- **音色库**：访问 `/voices`，按名称、文件名或格式搜索，分页浏览并试听本机参考音频；支持新增、重命名和删除。音色保存在本机 `.webapp/voices/`，新建任务时仍可直接选择。
+- **画风库**：访问 `/styles`，按名称、别名、简介或生成配方搜索，分页浏览全部内置与自定义画风。点击“查看详情”会展示 `id`、名称、别名、类型、内置/自定义标记、删除标记、简介、配方、预览图字段、图片 URL 和创建/更新时间等全部字段。
+- **IndexTTS 设置**：访问 `/tts`，单独配置节点、情绪控制方式、情绪权重、八维情绪向量、情绪描述文本、随机采样，以及 `top_p`、`top_k`、`temperature`、`num_beams` 等推理参数。参数保存在 `.webapp/config.json`，下一次生成时生效。
+- **文生图工作台**：访问 `/image-generator`，使用制作台 API 设置中的图片模型和服务配置；图片接口地址、图片 API Key 可单独配置，未填写的项沿用共享配置。仅配置图片 API Key 也可独立生图。输入提示词并按需选择已有画风、尺寸与质量，生成结果可预览、下载 PNG；最近 4 张结果仅保留在当前页面会话中，刷新后不会进入视频任务历史。
+
+### 音色库
+
+任务提交时会将音色复制到自己的任务目录，因此之后删除或重命名音色不会影响已经生成的历史任务。
+
+### TTS 文本预处理
+
+系统只会处理发送给 IndexTTS 的文本，原文仍用于分镜、页面内容和字幕。生成语音前会自动保护 `GPT-5`、`Qwen3-TTS` 等技术术语，并将普通连字符按上下文转换：数字范围如 `3-5` 转为“3到5”，负数如 `-2` 转为“负2”，其他连字符转为停顿。
+
+多音字短语写在项目根目录的 `pronunciation.yaml` 中，下一次生成时自动读取。例如：
+
+```yaml
+phrases:
+  - phrase: 银行
+    char: 行
+    pinyin: HANG2
+```
+
+这样“银行”会只在 TTS 文本中转换为“银`<行|HANG2>`”；分镜、页面和字幕仍保留原文。需要新增读音时，增加一条包含 `phrase`、`char` 和 `pinyin` 的规则即可。
 
 ## 核心能力
 
@@ -160,126 +282,6 @@
 
 > 模板预览使用 GitHub Raw 地址，避免 README 中的表格图片因相对路径无法渲染。当前前端实际提供 12 个模板；如果你只记得原来的 11 个，新增的是「漫画墨线解释风」。
 
-## 5 分钟启动
-
-### 环境要求
-
-- Windows 10/11（提供 PowerShell 一键启动脚本）
-- macOS 15+（Intel 与 Apple Silicon，提供 shell 一键启动脚本；Remotion 视频渲染要求）
-- Python 3.11+
-- Node.js 22.13+
-- FFmpeg 与 FFprobe，且已加入系统 `PATH`
-- 可访问的 IndexTTS 2.5 服务（Gradio 或 FastAPI）
-- OpenLux API Key，并有文本模型与图片模型的调用权限
-
-先确认音视频依赖可用。
-
-macOS/Linux：
-
-```bash
-ffmpeg -version
-ffprobe -version
-```
-
-Windows PowerShell：
-
-```powershell
-ffmpeg -version
-ffprobe -version
-```
-
-### Windows
-
-在项目根目录执行一次安装：
-
-```powershell
-python scripts/prepare_env.py
-.\.venv\Scripts\python.exe -m pip install -r webapp\requirements.txt
-Push-Location web
-npm ci
-Pop-Location
-```
-
-然后启动工作台：
-
-```powershell
-.\start-webapp.ps1
-```
-
-脚本会启动前后端并打开 [http://127.0.0.1:13000/](http://127.0.0.1:13000/)。同一局域网设备也可以通过脚本输出的地址访问。
-
-### macOS
-
-先安装 Python 3.11+、Node.js 22.13+、FFmpeg 与 FFprobe。使用 Homebrew 时可以执行：
-
-```bash
-brew install python@3.13 node ffmpeg
-```
-
-在项目根目录执行一次安装：
-
-```bash
-python3.13 scripts/prepare_env.py
-.venv/bin/python -m pip install -r webapp/requirements.txt
-(cd web && npm ci)
-```
-
-国内网络安装 Python 依赖较慢时，可以只对当前命令使用清华 PyPI 镜像：
-
-```bash
-PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple python3.13 scripts/prepare_env.py
-PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple .venv/bin/python -m pip install -r webapp/requirements.txt
-```
-
-然后启动工作台：
-
-```bash
-./start-webapp.sh
-```
-
-网页版与 macOS DMG 使用相同的本地端口（`13000` 和 `18765`），启动网页版前请先退出 **CSBoard.app**；启动脚本会检测端口占用并给出提示，不会误连接到 DMG 的服务。
-
-脚本会启动前后端并打开 [http://127.0.0.1:13000/](http://127.0.0.1:13000/)。如果系统没有自动打开浏览器，也可以手动访问该地址。动态信息图首次运行时会按当前平台准备 Remotion 与 Whisper.cpp 所需资源。macOS 14 及更低版本可以启动界面和 API，但当前 Remotion 版本的视频渲染不保证成功。
-
-### 首次配置
-
-打开右上角的 **API 设置**，填写并测试以下内容：
-
-1. **OpenLux API Key**：只保存在本机 `.webapp/config.json`，页面不会回显完整密钥。
-2. **文本模型**：默认 `gpt-5`，用于拆解文案、生成分镜或信息图结构。
-3. **图片模型**：默认 `gpt-image-2`，用于生成插画。
-4. **图片接口地址 / 图片 API Key（可选）**：留空时图片调用与文本使用同一个服务入口。如果文本与图片来自不同供应商（例如聚合网关只提供 GPT Image），可在这里单独填写图片服务的地址和密钥；两者也可以只填其一，未填写的一项自动沿用上方配置。密钥同样只保存在本机且不回显。
-5. **IndexTTS 地址与接口类型**：Gradio 通常为 `http://127.0.0.1:7860`，FastAPI 通常为 `8000` 端口。
-6. **视频输出目录**：macOS 可点击“选择文件夹”打开系统目录选择器，也可以填写 macOS/Windows 上的绝对路径；留空时最终视频只保存在任务历史目录。设置后只复制最终 MP4，中间图片、音频和检查点仍保存在 `.webapp/jobs/<任务 ID>/`。
-
-测试连接成功后，上传 10–30 秒、单人且噪声较少的参考音频，粘贴至少 10 个字的中文文案，选择制作模式和视觉模板即可开始。
-
-### 独立资源页面
-
-- **音色库**：访问 `/voices`，按名称、文件名或格式搜索，分页浏览并试听本机参考音频；支持新增、重命名和删除。音色保存在本机 `.webapp/voices/`，新建任务时仍可直接选择。
-- **画风库**：访问 `/styles`，按名称、别名、简介或生成配方搜索，分页浏览全部内置与自定义画风。点击“查看详情”会展示 `id`、名称、别名、类型、内置/自定义标记、删除标记、简介、配方、预览图字段、图片 URL 和创建/更新时间等全部字段。
-- **IndexTTS 设置**：访问 `/tts`，单独配置节点、情绪控制方式、情绪权重、八维情绪向量、情绪描述文本、随机采样，以及 `top_p`、`top_k`、`temperature`、`num_beams` 等推理参数。参数保存在 `.webapp/config.json`，下一次生成时生效。
-- **文生图工作台**：访问 `/image-generator`，使用制作台 API 设置中的图片模型和服务配置；图片接口地址、图片 API Key 可单独配置，未填写的项沿用共享配置。仅配置图片 API Key 也可独立生图。输入提示词并按需选择已有画风、尺寸与质量，生成结果可预览、下载 PNG；最近 4 张结果仅保留在当前页面会话中，刷新后不会进入视频任务历史。
-
-### 音色库
-
-任务提交时会将音色复制到自己的任务目录，因此之后删除或重命名音色不会影响已经生成的历史任务。
-
-### TTS 文本预处理
-
-系统只会处理发送给 IndexTTS 的文本，原文仍用于分镜、页面内容和字幕。生成语音前会自动保护 `GPT-5`、`Qwen3-TTS` 等技术术语，并将普通连字符按上下文转换：数字范围如 `3-5` 转为“3到5”，负数如 `-2` 转为“负2”，其他连字符转为停顿。
-
-多音字短语写在项目根目录的 `pronunciation.yaml` 中，下一次生成时自动读取。例如：
-
-```yaml
-phrases:
-  - phrase: 银行
-    char: 行
-    pinyin: HANG2
-```
-
-这样“银行”会只在 TTS 文本中转换为“银`<行|HANG2>`”；分镜、页面和字幕仍保留原文。需要新增读音时，增加一条包含 `phrase`、`char` 和 `pinyin` 的规则即可。
-
 ## 使用建议
 
 ### 标准制作
@@ -297,6 +299,15 @@ phrases:
 ### 编辑与删除历史
 
 在“生成历史”上方输入关键字，可以按任务名、文案、画风、状态或任务 ID 搜索，并使用分页按钮浏览结果。点击任务的“查看详情”，可以选择“复用本次设置和素材”把文案、参考音频、视觉参考与成片设置载入制作页，修改后重新生成。已完成、失败或已取消的任务可以点击“删除”；排队中或制作中的任务需要先取消。删除会清理该任务的本地素材、分镜、检查点和成片；如果配置了输出目录，也会一并删除对应的最终 MP4。
+
+## 近期改动
+
+- **音色库独立管理**：集中上传、试听、搜索和分页浏览参考音频，支持重命名、删除，并在制作台直接复用。
+- **画风库统一管理**：内置与自定义画风统一展示，支持搜索、分页、预览和完整字段详情；可编辑生成配方，为自定义画风上传预览图。
+- **生成历史与任务详情**：搜索历史任务，查看生成图片、制作参数、参考素材与成片；复用设置重新制作，或修改单张图片提示词后重新生成。
+- **独立 IndexTTS 设置**：集中配置语音节点、情绪控制和推理参数；最终 MP4 可另存到指定输出目录。
+- **新增文生图工作台**：通过 `/image-generator` 单独生成图片，复用 API 设置与画风库，支持尺寸、质量选择和 PNG 下载，无需先提交视频任务。
+- **手绘节奏优化**：将相邻笔画按对象分组，结合笔画长度与转折复杂度分配绘制时间，减少跨对象跳笔。
 
 ## 运行与数据
 
@@ -362,6 +373,10 @@ Pop-Location
 ├── start-webapp.ps1      # Windows 一键启动
 └── start-webapp.sh       # macOS/Linux 一键启动
 ```
+
+## Star 趋势
+
+[![CS Board Star 趋势](https://api.star-history.com/svg?repos=ChenShuo2004/cs-board&type=Date)](https://star-history.com/#ChenShuo2004/cs-board&Date)
 
 ## 贡献
 

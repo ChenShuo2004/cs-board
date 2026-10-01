@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="204" viewBox="0 0 1000 204" role="img" aria-labelledby="title desc">
+  <title id="title">CS Board 视频制作流程</title>
+  <desc id="desc">参考音频和中文文案，经过音色与分镜、手绘动画或动态信息图、字幕和音画合成，导出 MP4</desc>
+  <rect width="1000" height="204" rx="22" fill="#fbf7ef"/>
+  <g font-family="Arial, PingFang SC, Noto Sans CJK SC, sans-serif" text-anchor="middle">
+    <text x="500" y="30" fill="#9a7558" font-size="16" font-weight="700" letter-spacing="2">从输入到成片</text>
+    <g fill="#fff" stroke="#ddcbb4" stroke-width="2">
+      <rect x="28" y="60" width="172" height="96" rx="16"/>
+      <rect x="220" y="60" width="172" height="96" rx="16"/>
+      <rect x="412" y="60" width="172" height="96" rx="16"/>
+      <rect x="604" y="60" width="172" height="96" rx="16"/>
+    </g>
+    <rect x="796" y="60" width="176" height="96" rx="16" fill="#d9764d"/>
+    <g fill="#302d29" font-size="21" font-weight="700">
+      <text x="114" y="99">中文文案</text><text x="114" y="127">+ 参考声音</text>
+      <text x="306" y="99">音色克隆</text><text x="306" y="127">+ 内容拆解</text>
+      <text x="498" y="99">画面生成</text><text x="498" y="127">手绘 / 信息图</text>
+      <text x="690" y="99">字幕与音画</text><text x="690" y="127">合成</text>
+    </g>
+    <text x="884" y="116" fill="#fff" font-size="31" font-weight="800">MP4 成片</text>
+    <g fill="#b86e48" font-size="29" font-weight="700">
+      <text x="210" y="118">›</text><text x="402" y="118">›</text><text x="594" y="118">›</text><text x="786" y="118">›</text>
+    </g>
+    <text x="500" y="186" fill="#766858" font-size="16">标准 / 自定义模式生成手绘动画 · 动态信息图随真实旁白时间呈现</text>
+  </g>
+</svg>
