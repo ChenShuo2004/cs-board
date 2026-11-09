@@ -1,6 +1,7 @@
 [![中文](https://img.shields.io/badge/%E4%B8%AD%E6%96%87-f3dfc7?style=for-the-badge&labelColor=f3dfc7&color=bc7650)](README.md)
 [![English](https://img.shields.io/badge/English-8d4d2e?style=for-the-badge)](README.en.md)
 [![Follow on X](https://img.shields.io/badge/Follow-%40ChenshuoAI-bc7650?style=for-the-badge&logo=x&logoColor=white)](https://x.com/ChenshuoAI)
+[![AtomGit Star](https://gitcode.com/ChenShuo2004/cs-board/star/new_badge.svg)](https://gitcode.com/ChenShuo2004/cs-board)
 
 🚀 **[Make a video from your script](#install)**
 

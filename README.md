@@ -3,6 +3,7 @@
 [![中文](https://img.shields.io/badge/%E4%B8%AD%E6%96%87-8d4d2e?style=for-the-badge)](README.md)
 [![English](https://img.shields.io/badge/English-f3dfc7?style=for-the-badge&labelColor=f3dfc7&color=bc7650)](README.en.md)
 [![关注作者 X](https://img.shields.io/badge/%E5%85%B3%E6%B3%A8%E4%BD%9C%E8%80%85-%40ChenshuoAI-bc7650?style=for-the-badge&logo=x&logoColor=white)](https://x.com/ChenshuoAI)
+[![AtomGit Star](https://gitcode.com/ChenShuo2004/cs-board/star/new_badge.svg)](https://gitcode.com/ChenShuo2004/cs-board)
 
 🚀 **[从一段文案开始制作视频](#安装)**
 
