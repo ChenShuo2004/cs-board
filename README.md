@@ -11,16 +11,19 @@
 [![English](https://img.shields.io/badge/English-27272a?style=for-the-badge&logo=readme&logoColor=white)](README.en.md)
 
 [![GitHub Stars](https://img.shields.io/github/stars/ChenShuo2004/cs-board?style=for-the-badge&color=18181b&labelColor=f4f4f5)](https://github.com/ChenShuo2004/cs-board/stargazers)
+[![AtomGit G-Star 精选](https://img.shields.io/badge/AtomGit%20G--Star-%E7%B2%BE%E9%80%89%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-1f3fd6?style=for-the-badge&labelColor=f4f4f5)](https://mp.weixin.qq.com/s/JbH_pxJtx9JuDEWxhA2bCA)
 [![License: MIT](https://img.shields.io/badge/License-MIT-111111?style=for-the-badge&labelColor=f4f4f5&color=18181b)](LICENSE)
 [![关注作者 X](https://img.shields.io/badge/%E5%85%B3%E6%B3%A8%E4%BD%9C%E8%80%85-%40ChenshuoAI-111111?style=for-the-badge&logo=x&logoColor=white)](https://x.com/ChenshuoAI)
-[![产品介绍页](https://img.shields.io/badge/%E6%9C%89%E6%B8%A9%E5%BA%A6AI-%E4%BA%A7%E5%93%81%E9%A1%B5-111111?style=for-the-badge)](https://page.aiyouwendu.com/products/cs-board/)
-[![AtomGit Star](https://gitcode.com/ChenShuo2004/cs-board/star/new_badge.svg)](https://gitcode.com/ChenShuo2004/cs-board)
+[![产品介绍页](https://img.shields.io/badge/%E6%9C%89%E6%B8%A9%E5%BA%A6AI-%E4%BA%A7%E5%93%81%E9%A1%B5-111111?style=for-the-badge)](https://aiyouwendu.com/products/cs-board/)
+[![AtomGit Star](https://gitcode.com/ChenShuo2004/cs-board/star/new_badge.svg)](https://atomgit.com/ChenShuo2004/cs-board)
 
 [快速安装](#快速安装与启动) · [核心亮点](#核心亮点) · [界面预览](#界面预览) · [12 套视觉模板](#12-套视觉模板) · [首次配置](#首次配置与资源页面) · [开发验证](#开发验证) · [常见问题](#常见问题)
 
 </div>
 
 <br/>
+
+> 🏆 **官方精选背书**：CS Board 入选 AtomGit「G-Star 开源摘星计划」**[《本期精选 G-Star 开源项目推荐》](https://mp.weixin.qq.com/s/JbH_pxJtx9JuDEWxhA2bCA)**（`03 PIPELINE` 精选项目 · [访问 AtomGit 仓库](https://atomgit.com/ChenShuo2004/cs-board)）。
 
 <div align="center">
   <a href="examples/">

@@ -10,16 +10,19 @@ Upload a reference voice, paste a Chinese script, choose from **12 built-in visu
 [![English](https://img.shields.io/badge/English-111111?style=for-the-badge&logo=readme&logoColor=white)](README.en.md)
 
 [![GitHub Stars](https://img.shields.io/github/stars/ChenShuo2004/cs-board?style=for-the-badge&color=18181b&labelColor=f4f4f5)](https://github.com/ChenShuo2004/cs-board/stargazers)
+[![AtomGit G-Star Featured](https://img.shields.io/badge/AtomGit%20G--Star-Featured%20Project-1f3fd6?style=for-the-badge&labelColor=f4f4f5)](https://mp.weixin.qq.com/s/JbH_pxJtx9JuDEWxhA2bCA)
 [![License: MIT](https://img.shields.io/badge/License-MIT-111111?style=for-the-badge&labelColor=f4f4f5&color=18181b)](LICENSE)
 [![Follow @ChenshuoAI](https://img.shields.io/badge/Follow-%40ChenshuoAI-111111?style=for-the-badge&logo=x&logoColor=white)](https://x.com/ChenshuoAI)
-[![Product Page](https://img.shields.io/badge/Warmth%20Visual-Product%20Page-111111?style=for-the-badge)](https://page.aiyouwendu.com/en/products/cs-board/)
-[![AtomGit Star](https://gitcode.com/ChenShuo2004/cs-board/star/new_badge.svg)](https://gitcode.com/ChenShuo2004/cs-board)
+[![Product Page](https://img.shields.io/badge/Warmth%20Visual-Product%20Page-111111?style=for-the-badge)](https://aiyouwendu.com/en/products/cs-board/)
+[![AtomGit Star](https://gitcode.com/ChenShuo2004/cs-board/star/new_badge.svg)](https://atomgit.com/ChenShuo2004/cs-board)
 
 [Quick Start](#quick-start) · [Highlights](#why-cs-board) · [Features](#whats-included) · [Screenshots](#workbench-previews) · [FAQ](#faq)
 
 </div>
 
 <br/>
+
+> 🏆 **Official Recognition**: Selected as a Featured Open-Source Project by AtomGit's G-Star Program — **[Read Official Feature](https://mp.weixin.qq.com/s/JbH_pxJtx9JuDEWxhA2bCA)** (`03 PIPELINE` Track · [View on AtomGit](https://atomgit.com/ChenShuo2004/cs-board)).
 
 <div align="center">
   <a href="examples/">
